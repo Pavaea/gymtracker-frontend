@@ -1,10 +1,13 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import * as React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import * as React from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
+import {Button} from "@/components/ui/button.tsx";
 
 export default function LoginPage() {
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading]   = useState(false);
@@ -16,6 +19,7 @@ export default function LoginPage() {
     setError(null);
     setOk(false);
     setLoading(true);
+
     try {
       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/login`, {
         method: "POST",
@@ -34,6 +38,17 @@ export default function LoginPage() {
 
       localStorage.setItem("jwt", token);
       setOk(true);
+      const decoded: any = jwtDecode(token);
+
+        if (decoded.roles.includes("ROLE_ADMIN")) {
+            navigate("/admin-dashboard");
+        } else if (decoded.roles.includes("ROLE_USER")) {
+            navigate("/user-dashboard");
+        } else {
+            navigate("/");
+        }
+
+
 
     } catch (err: any) {
       setError(err?.message ?? "Login failed");
@@ -83,7 +98,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        <Button  type="submit" className="w-full" disabled={loading}>
+        <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Signing in…" : "Sign In"}
         </Button>
 
